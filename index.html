@@ -365,7 +365,7 @@ function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&am
 function uid(){return Math.random().toString(36).slice(2,8)}
 
 /* ---------- datos fijos ---------- */
-var W={hab:1,gym:3,hap:1,reto:5,rd:2,chk:2,nog:1,cus:1,dia:1,blk:1,full:5,bel:1,pho:3,ext:1,mini:1,voz:2,ex:1,car:5,carx:3,rut:4};
+var W={sos:2,hab:1,gym:3,hap:1,reto:5,rd:2,chk:2,nog:1,cus:1,dia:1,blk:1,full:5,bel:1,pho:3,ext:1,mini:1,voz:2,ex:1,car:5,carx:3,rut:4};
 var BOPTS0=['Mi sonrisa','Mi peinado','Mi outfit','Mis zapatillas','Mi piel','Mi mirada','Mi risa','Me sentí fuerte entrenando','Cómo me trataron hoy','Mi actitud'];
 /* Mensaje y retos que Álvaro puede pedir que se agreguen (se actualizan republicando la página) */
 var COACH_PHONE='51963443282';
@@ -455,6 +455,9 @@ function items(d){
   return a;
 }
 var toastT;
+var EVL={hab:'un hábito',gym:'gimnasio',hap:'algo que la hace feliz',reto:'un reto',rd:'una misión del día',chk:'un check-in',nog:'comida sin culpa',cus:'una costumbre',dia:'una nota del diario',blk:'un paso del horario',full:'un día completo',bel:'cuidado personal',ex:'un extra',car:'cardio',carx:'cardio extra',rut:'toda la rutina',mini:'un logro pequeño',sos:'un cuidado',pho:'una foto',voz:'un audio',ext:'un extra'};
+var TABN={hoy:'Hoy',semana:'Semana',retos:'Retos',comer:'Comer',gym:'Gym',diario:'Diario',yo:'Yo'};
+function ev(t){try{S.ev=S.ev||[];var l=S.ev[S.ev.length-1];if(l&&l.e===t&&Date.now()-l.t<20000)return;S.ev.push({t:Date.now(),e:t});if(S.ev.length>60)S.ev=S.ev.slice(-60)}catch(x){}}
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on')},2200)}
 /* ---------- sonidos estilo consola (sintetizados, originales) ---------- */
 var AC=null;
@@ -494,8 +497,8 @@ function syncBtns(){document.getElementById('snd').setAttribute('aria-pressed',S
 
 function toggle(k){
   var ty=k.split('|')[0],l0=level().i;
-  if(S.done[k]){delete S.done[k];sfx('bump')}
-  else{S.done[k]=1;var w=W[ty]||1;var big=ty==='gym'||ty==='car'||ty==='carx'||ty==='rut',xt={gym:' y una cereza',car:' por tu cardio. Sé que cuesta y lo hiciste',carx:' por ir un poquito más lejos',rut:' por completar toda tu rutina'}[ty]||'';cele(w,xt,big);sfx(ty==='gym'?'power':(ty==='car'||ty==='rut')?'rank':ty==='carx'?'rd':ty==='rd'?'rd':ty==='reto'?'reto':ty==='blk'?'blk':'coin')}
+  if(S.done[k]){delete S.done[k];ev('desmarcó '+(EVL[ty]||'algo'));sfx('bump')}
+  else{S.done[k]=1;ev('marcó '+(EVL[ty]||'algo'));var w=W[ty]||1;var big=ty==='gym'||ty==='car'||ty==='carx'||ty==='rut',xt={gym:' y una cereza',car:' por tu cardio. Sé que cuesta y lo hiciste',carx:' por ir un poquito más lejos',rut:' por completar toda tu rutina'}[ty]||'';cele(w,xt,big);sfx(ty==='gym'?'power':(ty==='car'||ty==='rut')?'rank':ty==='carx'?'rd':ty==='rd'?'rd':ty==='reto'?'reto':ty==='blk'?'blk':'coin')}
   save();render();
   var l1=level();if(l1.i>l0){setTimeout(function(){sfx('rank');toast('¡Subiste de rango: '+l1.name+'!')},450)}
 }
@@ -695,10 +698,42 @@ function miniCard(){
   var td=S.mini.filter(function(x){return x.d===TODAY});
   return '<section class="card green"><h3>Cualquier cosa cuenta</h3><p class="sub">Aunque sea pequeña: levantarte, bañarte, contestar un mensaje, salir de casa. Anótala y gana una moneda.</p>'+(td.length?'<div class="list">'+td.map(function(x){return '<div class="itemrow"><div class="tick" style="cursor:default" aria-pressed="true"><span class="bx"><svg viewBox="0 0 24 24"><use href="#ck"/></svg></span><span class="tt">'+esc(x.t)+'</span></div><button class="del" data-a="minidel" data-id="'+x.id+'" aria-label="Quitar">×</button></div>'}).join('')+'</div>':'')+'<form class="add" data-a="addmini"><input class="field" name="t" placeholder="Algo que logré hoy" maxlength="80" aria-label="Algo que logré hoy"><button class="btn yel" type="submit">Anotar</button></form></section>';
 }
+var SOSF=[['cansada','Cansada'],['triste','Triste'],['agobiada','Agobiada o con ansiedad'],['frustrada','Frustrada o enojada'],['cuerpo','Insegura con mi cuerpo'],['culpa','Con culpa por comer'],['sola','Sola'],['nose','No sé, solo estoy mal']];
+var SOSM={cansada:'Estás cansada, y eso no es un fallo: es tu cuerpo pidiendo cuidado.',triste:'Tu tristeza importa. No tienes que estar bien hoy.',agobiada:'Todo parece mucho a la vez. Vamos de a una cosa, solo una.',frustrada:'Es válido sentirte así. No tienes que hacerlo perfecto.',cuerpo:'Esos pensamientos pesan, pero no son la verdad sobre ti. Eres más que lo que ves en el espejo.',culpa:'Comer no se paga ni se castiga. Una comida no cambia nada de lo que has avanzado.',sola:'No estás sola. Aunque hoy se sienta así, hay quien piensa en ti.',nose:'No hace falta saber qué es. Estar mal ya es motivo suficiente para cuidarte.'};
+var SOSL={cansada:['dormir','agua','mov'],triste:['bonito','gata','musica','contar'],agobiada:['resp','ver','esc'],frustrada:['resp','mov','voz'],cuerpo:['cuerpo','bonito','musica'],culpa:['comida','agua','resp'],sola:['contar','gata','voz'],nose:['resp','agua','musica']};
+function sosFl(f){var r=SOSF.filter(function(x){return x[0]===f})[0];return r?r[1].toLowerCase():'mal'}
+function sosAct(id){var A={
+resp:{t:'Respirar con calma',d:'Entra cuando el círculo crece y sale cuando se achica. Haz cinco respiraciones.',b:1},
+agua:{t:'Tomar agua despacio',d:'Sírvete un vaso de agua y tómalo en sorbos lentos. Siente lo fresca que está.'},
+ver:{t:'Volver al presente',d:'Nombra en voz baja 5 cosas que ves, 4 que puedes tocar y 3 que oyes. Te devuelve al aquí.'},
+musica:{t:'Una canción tuya',d:'Toca la notita de arriba para poner música, o pon la canción que más te guste. Una completa, sin hacer nada más.'},
+gata:{t:'Un rato de cariño',d:'Abraza a tu gata o a algo suave durante 20 segundos. El contacto suave calma.'},
+mov:{t:'Soltar el cuerpo',d:'Camina por la casa o estírate dos minutos. No es ejercicio, es soltar la tensión.'},
+dormir:{t:'Descansar sin culpa',d:'Si puedes, acuéstate 10 minutos con los ojos cerrados. Descansar también es avanzar.'},
+esc:{t:'Una sola frase',d:'Termina esta frase en tu diario: "Ahora mismo siento…". No tiene que ser bonita.',lnk:'Abrir mi diario'},
+voz:{t:'Decirlo en voz alta',d:'Cuéntalo hablando, 30 segundos. Puedes grabarlo en Mis notas de voz: queda solo en tu teléfono.',lnk:'Grabar un audio'},
+cuerpo:{t:'Tres cosas que tu cuerpo hizo hoy',d:'Piensa en tres: te llevó al trabajo, respiró por ti, te abrazó. Hoy no tienes que gustarte, solo tratarte con cariño.'},
+comida:{t:'Sin castigo',d:'No hay nada que compensar. Toma agua y haz tu próxima comida normal, sin saltarte ninguna.'},
+contar:{t:'Contárselo a '+COACH.from,d:'No tienes que explicarlo bien. Con "me siento mal" basta.',wa:1},
+bonito:{t:'Lo que te dejó '+COACH.from,d:COACH.msg||'Estoy aquí y me importas mucho.',q:1}
+};return A[id]}
+function sosPick(f,tried){var L=SOSL[f]||SOSL.nose,h=S.sos||[],best=null,bs=0;L.forEach(function(id,i){if(tried.indexOf(id)>-1)return;var g=h.filter(function(x){return x.f===f&&x.a===id&&x.r==='mejor'}).length,m=h.filter(function(x){return x.f===f&&x.a===id&&x.r==='peor'}).length,sc=(g*10-m*5)*10-i;if(best===null||sc>bs){best=id;bs=sc}});return best}
+function sosReset(){UI.sos=0;UI.sosf=null;UI.sosa=null;UI.sost=[];UI.sosw=0;UI.sosend=''}
 function sosCard(){
   if(!UI.sos)return '<section class="card"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><h3>¿Te sientes mal hoy?</h3><p class="sub">Aquí estoy contigo, sin presión.</p></div><button class="btn alt" data-a="sos">Me siento mal</button></div></section>';
-  var k=key('mini',DI,'sos'),on=!!S.done[k];
-  return '<section class="card pink"><p class="eyebrow">AQUÍ ESTOY</p><h2>Gracias por decirlo</h2><p style="margin-top:6px">Sentirte mal no te hace débil ni borra lo que has avanzado. No tienes que arreglar nada hoy. Eres querida.</p><div class="breath" aria-hidden="true"><i></i></div><p class="sub" style="text-align:center">Respira con el círculo: entra cuando crece, sale cuando se achica.</p><div class="list"><button class="tick" data-a="tog" data-k="'+k+'" aria-pressed="'+on+'"><span class="bx"><svg viewBox="0 0 24 24"><use href="#ck"/></svg></span><span class="tt">Ya me di un respiro</span><span class="pt">+1</span></button><a class="btn alt" href="#diario" data-a="sosdiary">Escribirlo en mi diario</a><a class="btn yel" href="'+wa('Hoy me siento mal y me gustaría hablar contigo.')+'" target="_blank" rel="noopener">Contarle a '+esc(COACH.from)+'</a></div><div class="row" style="margin-top:10px"><button class="btn alt" data-a="sosx">Cerrar</button></div></section>';
+  var f=UI.sosf,h='<section class="card pink"><p class="eyebrow">AQUÍ ESTOY</p>',cl='<div class="row" style="margin-top:12px"><button class="btn alt" data-a="sosx">Cerrar</button></div></section>';
+  if(!f)return h+'<h2>Gracias por decirlo</h2><p style="margin-top:6px">Sentirte mal no te hace débil ni borra lo que has avanzado. No tienes que arreglar nada hoy. Eres querida.</p><p style="margin-top:10px"><b>¿Qué sientes más ahora?</b><br><span class="sub">Toca una y yo te digo qué hacer.</span></p><div class="chips" style="margin-top:8px">'+SOSF.map(function(x){return '<button class="chip" data-a="sosf" data-f="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'+cl;
+  var tw=wa('Hoy me siento '+sosFl(f)+' y me gustaría hablar contigo.');
+  if(UI.sosend==='mejor')return h+'<h2>Me alegra mucho</h2><p style="margin-top:6px">Lo hiciste tú: te cuidaste cuando lo necesitabas. Eso también es avanzar. Guardé lo que te ayudó y la próxima vez te lo propongo primero.</p>'+cl;
+  if(UI.sosend==='peor')return h+'<h2>No tienes que pasarlo sola</h2><p style="margin-top:6px">Gracias por seguir intentándolo. Ahora lo mejor es que alguien esté contigo. Escríbele a '+esc(COACH.from)+' aunque no sepas qué decir: con un "me siento mal" basta.</p><div class="list" style="margin-top:10px"><a class="btn yel" href="'+tw+'" target="_blank" rel="noopener">Escribirle a '+esc(COACH.from)+' ahora</a><a class="btn alt" href="#diario" data-a="sosdiary">Grabar un audio para él</a></div><p class="sub" style="margin-top:10px">Si sientes que no puedes más o piensas en hacerte daño, llama gratis a la Línea 113 (opción 5) o díselo ahora a alguien que esté cerca.</p>'+cl;
+  var id=UI.sosa,a=id?sosAct(id):null,tried=UI.sost||[];
+  h+='<h2>'+esc(SOSM[f])+'</h2>';
+  if(!a)return h+'<p style="margin-top:8px">Ya probamos varias cosas. Lo mejor ahora es que hables con alguien.</p><div class="list" style="margin-top:10px"><a class="btn yel" href="'+tw+'" target="_blank" rel="noopener">Contarle a '+esc(COACH.from)+'</a></div>'+cl;
+  var best=(S.sos||[]).some(function(x){return x.f===f&&x.a===id&&x.r==='mejor'});
+  h+='<div class="entry" style="margin-top:12px"><span class="tag">'+(tried.length?'PRUEBA ESTO':'HAZ ESTO PRIMERO')+'</span><h3 style="margin-top:6px">'+esc(a.t)+'</h3>'+(best?'<p class="sub">La última vez esto te ayudó.</p>':'')+(a.q?'<p class="say" style="font-size:1.25rem;margin-top:6px">'+esc(a.d)+'</p>':'<p style="margin-top:6px">'+esc(a.d)+'</p>')+(a.b?'<div class="breath" aria-hidden="true"><i></i></div>':'')+(a.wa?'<div class="row" style="margin-top:8px"><a class="btn yel" href="'+tw+'" target="_blank" rel="noopener">Escribirle por WhatsApp</a></div>':'')+(a.lnk?'<div class="row" style="margin-top:8px"><a class="btn alt" href="#diario" data-a="sosdiary">'+esc(a.lnk)+'</a></div>':'')+'</div>';
+  if(UI.sosw)return h+'<p style="margin-top:12px"><b>¿Cómo estás ahora?</b></p><div class="row" style="margin-top:8px"><button class="btn yel" data-a="sosres" data-r="mejor">Mejor</button><button class="btn alt" data-a="sosres" data-r="igual">Igual</button><button class="btn alt" data-a="sosres" data-r="peor">Peor</button></div>'+cl;
+  var more=sosPick(f,tried.concat([id]))!==null;
+  return h+'<div class="row" style="margin-top:12px"><button class="btn yel" data-a="sosdone">Ya lo hice</button>'+(more?'<button class="btn alt" data-a="sosalt">Otra opción</button>':'')+'</div><div class="row" style="margin-top:8px"><button class="btn alt" data-a="sosf0">Cambiar lo que siento</button><button class="btn alt" data-a="sosx">Cerrar</button></div></section>';
 }
 function voiceCard(){
   var L=mvoice().slice().reverse(),n=Object.keys(S.done).filter(function(k){return k.indexOf('voz|'+WK+'|'+DI+'|')===0}).length;
@@ -982,7 +1017,7 @@ function render(){
   window.scrollTo(0,y);
 }
 function renderTab(){var app=document.getElementById('app');app.classList.add('enter');render();window.scrollTo(0,0);setTimeout(function(){app.classList.remove('enter')},1000)}
-addEventListener('hashchange',function(){route();UI.share='';renderTab();sfx('tab')});
+addEventListener('hashchange',function(){route();ev('abrió '+(TABN[cur]||cur));save();UI.share='';renderTab();sfx('tab')});
 
 document.addEventListener('click',function(e){
   if(S.mus&&!bgOn&&!UI.musTried){UI.musTried=1;musicOn();syncBtns()}
@@ -994,9 +1029,22 @@ document.addEventListener('click',function(e){
   else if(a==='pick'){S.pick[WK+'|'+b.dataset.d]=b.dataset.o;sfx('pick');if(earn('pick'+b.dataset.d)){save();render();cele(1,' por elegir')}else{save();render();toast('Buena elección')}}
   else if(a==='vtag'){UI.vtag=b.dataset.v;render()}
   else if(a==='tellwrite'){UI.kind=KMAP[UI.vtag||'Mi día']||'diario'}
-  else if(a==='sos'){UI.sos=1;render()}
-  else if(a==='sosx'){UI.sos=0;render()}
-  else if(a==='sosdiary'){UI.kind='siento';UI.sos=0}
+  else if(a==='sos'){sosReset();UI.sos=1;ev('abrió "Me siento mal"');save();render()}
+  else if(a==='sosx'){sosReset();render()}
+  else if(a==='sosdiary'){UI.kind='siento';sosReset()}
+  else if(a==='sosf'){UI.sosf=b.dataset.f;UI.sost=[];UI.sosa=sosPick(UI.sosf,[]);UI.sosw=0;UI.sosend='';sfx('soft');render()}
+  else if(a==='sosf0'){UI.sosf=null;UI.sosa=null;UI.sost=[];UI.sosw=0;UI.sosend='';render()}
+  else if(a==='sosalt'){var tr=(UI.sost||[]).concat([UI.sosa]);UI.sost=tr;UI.sosa=sosPick(UI.sosf,tr);UI.sosw=0;sfx('pick');render()}
+  else if(a==='sosdone'){UI.sosw=1;sfx('good');render()}
+  else if(a==='sosres'){
+    var rs=b.dataset.r,sid=UI.sosa;S.sos=S.sos||[];S.sos.push({d:TODAY,t:Date.now(),f:UI.sosf,a:sid,r:rs});if(S.sos.length>40)S.sos=S.sos.slice(-40);
+    ev('terminó "Me siento mal"');
+    var ct=Object.keys(S.done).filter(function(k){return k.indexOf('sos|'+WK+'|'+DI+'|')===0}).length,got=false;
+    if(ct<3){S.done[key('sos',DI,uid())]=1;got=true}
+    if(rs==='mejor'){UI.sosend='mejor'}
+    else if(rs==='igual'){var tr2=(UI.sost||[]).concat([sid]),nx=sosPick(UI.sosf,tr2);if(nx){UI.sost=tr2;UI.sosa=nx;UI.sosw=0;toast('Probemos otra cosa, sin presión')}else UI.sosend='peor'}
+    else{UI.sosend='peor'}
+    save();render();if(got)cele(2,' por cuidarte');else sfx('soft')}
   else if(a==='laugh'){UI.laugh=((UI.laugh==null?PHI%FUN.length:UI.laugh)+1)%FUN.length;var lg=earn('laugh');if(lg){save();render();cele(1,' por reír')}else render();sfx('good')}
   else if(a==='crbuy'){var cr=S.crew.filter(function(x){return x.id===b.dataset.id})[0];if(cr&&Object.keys(S.cups).length>=cr.n&&!S.credeemed[cr.id]){S.credeemed[cr.id]=1;save();render();sfx('copa');toast('Canjeaste: '+cr.t+'. Disfrútalo sin culpa.')}else sfx('bump')}
   else if(a==='crdel'){S.crew=S.crew.filter(function(x){return x.id!==b.dataset.id});save();render()}
@@ -1013,7 +1061,7 @@ document.addEventListener('click',function(e){
   else if(a==='kf'){UI.kf=b.dataset.k;render()}
   else if(a==='kind'){var tk=document.getElementById('talk');if(tk)UI.draft=tk.value;UI.kind=b.dataset.k;render()}
   else if(a==='rfb'){var nm=b.dataset.n;if(S.rfb[nm]===b.dataset.v)delete S.rfb[nm];else{S.rfb[nm]=b.dataset.v;toast('Lo guardé en tus preferencias');earn('rfb')}save();render()}
-  else if(a==='cup'){var cid=b.dataset.id;if(!S.cups[cid]){S.cups[cid]=1;S.bonus=(S.bonus||0)+10;save();UI.win=cid;render();window.scrollTo(0,0);sfx('copa');toast('¡Copa ganada! +10 monedas')}}
+  else if(a==='cup'){var cid=b.dataset.id;if(!S.cups[cid]){S.cups[cid]=1;ev('ganó una copa');S.bonus=(S.bonus||0)+10;save();UI.win=cid;render();window.scrollTo(0,0);sfx('copa');toast('¡Copa ganada! +10 monedas')}}
   else if(a==='winx'){UI.win=null;render()}
   else if(a==='rddel'){S.myretos=S.myretos.filter(function(r){return r.id!==b.dataset.id});save();render()}
   else if(a==='habdel'){S.habits=S.habits.filter(function(r){return r.id!==b.dataset.id});save();render()}
@@ -1022,13 +1070,13 @@ document.addEventListener('click',function(e){
   else if(a==='mdel'){var mid=b.dataset.id;Object.keys(S.done).forEach(function(k){if((k.indexOf('pho|')===0||k.indexOf('voz|')===0)&&k.split('|')[3]===mid)delete S.done[k]});save();mdel(mid,function(){mload(function(){render()})})}
   else if(a==='nextph'){UI.ph=((UI.ph==null?PHI:UI.ph)+1)%ME.length;render()}
   else if(a==='pilot'){S.pilot=b.dataset.id;sfx('pilot');var pg=earn('pilot');save();render();if(pg)cele(1,' por elegir piloto');else toast(pname(S.pilot)+' va contigo')}
-  else if(a==='mood'){UI.mood=b.dataset.m;var n=document.getElementById('note');var m0=S.mood[TODAY],m=m0||{};m.n=n?n.value:(m.n||'');S.mood[TODAY]=Object.assign(m,{m:UI.mood});if(['Triste','Frustrada'].indexOf(UI.mood)>-1)UI.sos=1;save();sfx(['Cansada','Triste','Frustrada'].indexOf(UI.mood)>-1?'soft':'good');render();if(!m0)cele(2,' por contarme cómo estás')}
+  else if(a==='mood'){UI.mood=b.dataset.m;var n=document.getElementById('note');var m0=S.mood[TODAY],m=m0||{};m.n=n?n.value:(m.n||'');S.mood[TODAY]=Object.assign(m,{m:UI.mood});if(['Triste','Frustrada'].indexOf(UI.mood)>-1){sosReset();UI.sos=1;UI.sosf=UI.mood==='Triste'?'triste':'frustrada';UI.sosa=sosPick(UI.sosf,[])}save();sfx(['Cansada','Triste','Frustrada'].indexOf(UI.mood)>-1?'soft':'good');render();if(!m0)cele(2,' por contarme cómo estás')}
   else if(a==='savemood'){var n2=document.getElementById('note'),mm=S.mood[TODAY]||{};if(!UI.mood&&!mm.m){toast('Elige primero cómo te sientes');return}var first=!S.mood[TODAY];S.mood[TODAY]={m:UI.mood||mm.m,n:n2?n2.value:''};save();render();if(first)cele(2,' por contarme cómo estás');else toast('Guardado')}
   else if(a==='pat'){S.gym=b.dataset.p.split(',').map(Number);var g1=earn('pat');save();render();if(g1)cele(1,' por organizar tu semana')}
   else if(a==='gymd'){var d=+b.dataset.d,i=S.gym.indexOf(d);if(i>-1)S.gym.splice(i,1);else S.gym.push(d);var g2=earn('pat');save();render();if(g2)cele(1,' por organizar tu semana')}
   else if(a==='day'){UI.day=+b.dataset.d;render()}
   else if(a==='delc'){var dd=b.dataset.d,l=S.custom[dd]||[];S.custom[dd]=l.filter(function(c){return c.id!==b.dataset.id});save();render()}
-  else if(a==='buy'){var r=S.rewards.filter(function(x){return x.id===b.dataset.id})[0];if(r&&r.cost<=coins()){S.redeemed.push({t:r.t,cost:r.cost,d:TODAY});save();render();sfx('buy');toast('Canjeaste: '+r.t+'. Disfrútalo.')}else sfx('bump')}
+  else if(a==='buy'){var r=S.rewards.filter(function(x){return x.id===b.dataset.id})[0];if(r&&r.cost<=coins()){S.redeemed.push({t:r.t,cost:r.cost,d:TODAY});ev('canjeó un premio');save();render();sfx('buy');toast('Canjeaste: '+r.t+'. Disfrútalo.')}else sfx('bump')}
   else if(a==='delr'){S.rewards=S.rewards.filter(function(x){return x.id!==b.dataset.id});save();render()}
   else if(a==='delh'){S.happy.splice(+b.dataset.i,1);save();render()}
   else if(a==='delf'){S.friends.splice(+b.dataset.i,1);save();render()}
@@ -1051,7 +1099,7 @@ document.addEventListener('submit',function(e){
     return;
   }
   if(a==='addcr'&&v){var cn=Math.max(1,Math.min(60,parseInt(f.c.value,10)||5));S.crew.push({id:uid(),n:cn,t:v});save();render();return}
-  if(a==='addmini'&&v){var mid2=uid(),cnt0=S.mini.filter(function(x){return x.d===TODAY}).length;S.mini.push({id:mid2,t:v,d:TODAY});if(cnt0<10){S.done[key('mini',DI,mid2)]=1;save();render();cele(1,' por algo pequeño')}else{save();render();toast('Anotado. Hoy ya sumaste 10 logros pequeños')}return}
+  if(a==='addmini'&&v){var mid2=uid(),cnt0=S.mini.filter(function(x){return x.d===TODAY}).length;S.mini.push({id:mid2,t:v,d:TODAY});ev('anotó un logro pequeño');if(cnt0<10){S.done[key('mini',DI,mid2)]=1;save();render();cele(1,' por algo pequeño')}else{save();render();toast('Anotado. Hoy ya sumaste 10 logros pequeños')}return}
   if(a==='addc'&&v){var d=f.dataset.d;(S.custom[d]=S.custom[d]||[]).push({id:uid(),t:v});save();render()}
   else if(a==='addr'&&v){var c=Math.max(5,Math.min(500,parseInt(f.c.value,10)||30));S.rewards.push({id:uid(),t:v,cost:c});save();render()}
   else if(a==='addh'&&v){S.happy.push(v);save();render()}
@@ -1106,14 +1154,14 @@ function buildSummary(){
   return {v:1,now:new Date().toISOString(),coins:coins(),earned:earned(),rank:level().name,level:level().i+1,cups:Object.keys(S.cups).length,cupsTotal:CUPS.length,
     gym:gymTotal(),gymWeek:cnt('gym|'+WK),gymPlanned:S.gym.length,streak:streak,
     today:{date:TODAY,blocksDone:bd,blocksTotal:B.length,missionsDone:md,missionsTotal:ml.length},days:days.reverse(),
-    redeemed:S.redeemed.slice(-10),likes:S.likes,gl:S.gl.slice(-12),photos:mpics().length,voices:mvoice().length,diaryCount:S.talk.length,pilot:S.pilot,gymDays:S.gym};
+    redeemed:S.redeemed.slice(-10),likes:S.likes,gl:S.gl.slice(-12),photos:mpics().length,voices:mvoice().length,diaryCount:S.talk.length,pilot:S.pilot,gymDays:S.gym,ev:(S.ev||[]).slice(-40)};
 }
 function buildShared(){
   var m={},ks=Object.keys(S.mood).sort().slice(-14);ks.forEach(function(k){m[k]=S.mood[k]});
-  return {mood:m,talk:S.talk.slice(-40),real:realLines()};
+  return {mood:m,talk:S.talk.slice(-40),real:realLines(),sos:(S.sos||[]).slice(-15)};
 }
 function buildBackup(){
-  var b=JSON.parse(JSON.stringify(S));delete b.talk;delete b.real;
+  var b=JSON.parse(JSON.stringify(S));delete b.talk;delete b.real;delete b.ev;
   Object.keys(b.mood||{}).forEach(function(k){delete b.mood[k].n});
   b.sync={asked:true,backup:true,activity:!!S.sync.activity,diary:false,device:S.sync.device};
   return b;
@@ -1139,8 +1187,8 @@ function fetchCoach(){
 function privacyRows(){
   var sy=S.sync;
   return '<label class="prv"><input type="checkbox" data-a="syncset" data-f="backup"'+(sy.backup?' checked':'')+'><span><b>Guardar mi progreso en la nube</b><br><span class="sub">Para que no se pierda si cambias de teléfono. Guarda monedas, copas, retos, horario, premios y entrenamientos. No guarda lo que escribes ni tus fotos.</span></span></label>'+
-   '<label class="prv"><input type="checkbox" data-a="syncset" data-f="activity"'+(sy.activity?' checked':'')+'><span><b>Compartir mi actividad con '+esc(COACH.from)+'</b><br><span class="sub">Para que sepa si estás usando la página y cómo vas: lo que marcas, tus monedas, copas y cómo te fue en el gimnasio.</span></span></label>'+
-   '<label class="prv"><input type="checkbox" data-a="syncset" data-f="diary"'+(sy.diary?' checked':'')+(sy.activity?'':' disabled')+'><span><b>Compartir también lo que escribo</b><br><span class="sub">Tu diario, cómo te sientes y lo que realmente hiciste. Mejor déjalo apagado si prefieres que sea solo tuyo. Tus audios y fotos nunca se comparten.</span></span></label>';
+   '<label class="prv"><input type="checkbox" data-a="syncset" data-f="activity"'+(sy.activity?' checked':'')+'><span><b>Compartir mi actividad con '+esc(COACH.from)+'</b><br><span class="sub">Para que sepa si estás usando la página y cómo vas: lo que marcas, qué secciones abres, cuándo usas Me siento mal, tus monedas, copas y cómo te fue en el gimnasio.</span></span></label>'+
+   '<label class="prv"><input type="checkbox" data-a="syncset" data-f="diary"'+(sy.diary?' checked':'')+(sy.activity?'':' disabled')+'><span><b>Compartir también lo que escribo</b><br><span class="sub">Tu diario, cómo te sientes, lo que realmente hiciste y qué te ayudó en Me siento mal. Mejor déjalo apagado si prefieres que sea solo tuyo. Tus audios y fotos nunca se comparten.</span></span></label>';
 }
 function privacyCard(){
   return '<section class="card"><h3>Mi privacidad</h3><p class="sub">Tú decides qué se guarda y qué se comparte. Puedes cambiarlo cuando quieras.</p><div class="list">'+privacyRows()+'</div><p class="note" id="syncst">'+esc(syncLabel())+'</p></section>';
@@ -1158,7 +1206,7 @@ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}
 syncBtns();
 route();renderTab();
 document.addEventListener('visibilitychange',function(){if(document.hidden&&syncOn()){clearTimeout(pushT);doPush()}});
-if(!S.sync.asked)setTimeout(showConsent,600);else schedulePush();
+ev('abrió la página');save();if(!S.sync.asked)setTimeout(showConsent,600);else schedulePush();
 fetchCoach();setInterval(fetchCoach,300000);
 mopen(function(){mload(function(){render()})});
 })();
