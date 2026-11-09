@@ -482,7 +482,7 @@ function sfx(n){
 var bgm=null,bgOn=false,loopT=null,fbMus=false;
 var MEL=[523,659,784,659,587,740,880,740,523,659,784,1047,988,784,659,784];
 function chipLoop(){if(!bgOn||!ac())return;var i=0;(function step(){if(!bgOn)return;var f=MEL[i%MEL.length];tone(f,0,.16,'square',.018);if(i%4===0)tone(f/2,0,.34,'triangle',.035);i++;loopT=setTimeout(step,210)})()}
-var PL=['audio/musica1.mp3','audio/musica2.mp3','audio/musica3.mp3','audio/musica4.mp3'],pi=0;
+var PL=['audio/musica1.mp3','audio/musica2.mp3','audio/musica3.mp3','audio/musica4.mp3','audio/musica5.mp3','audio/musica6.mp3','audio/musica7.mp3','audio/musica8.mp3'],pi=0;
 (function(){for(var i=PL.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=PL[i];PL[i]=PL[j];PL[j]=t}})();
 function musicOn(){
   bgOn=true;S.mus=true;save();ac();
