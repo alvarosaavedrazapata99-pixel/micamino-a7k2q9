@@ -704,7 +704,7 @@ var SOSL={cansada:['dormir','agua','mov'],triste:['bonito','gata','musica','cont
 var SOSAU={cansada:['audio/musica8.mp3','Música suave para bajar el ritmo'],triste:['audio/musica8.mp3','Música suave, para acompañarte'],agobiada:['audio/musica8.mp3','Música tranquila para soltar la cabeza'],sola:['audio/musica6.mp3','Una melodía alegre y cálida, para sentirte acompañada'],frustrada:['audio/musica7.mp3','Música con fuerza, para sacar lo que sientes'],cuerpo:['audio/musica7.mp3','Música con fuerza, para recordar lo capaz que eres'],culpa:['audio/musica6.mp3','Una melodía ligera, sin presión'],nose:['audio/musica8.mp3','Música tranquila, para empezar']};
 document.addEventListener('play',function(e){var t=e.target;if(t&&t.dataset&&t.dataset.sosa&&bgm){try{bgm.pause()}catch(x){}}},true);
 var SOSSG={cansada:[['Story of My Life','One Direction'],['Night Changes','One Direction']],triste:[['Firework','Katy Perry'],['Million Reasons','Lady Gaga']],agobiada:[["Don't Stop Believin'",'Glee Cast'],['Unconditionally','Katy Perry']],frustrada:[['Roar','Katy Perry'],['Bad Romance','Lady Gaga']],cuerpo:[['Born This Way','Lady Gaga'],['What Makes You Beautiful','One Direction']],culpa:[['Teenage Dream','Katy Perry'],['Love Yourself','Justin Bieber']],sola:[['Nuestro amor','RBD'],['Solo quédate en silencio','RBD']],nose:[['Firework','Katy Perry'],['Never Say Never','Justin Bieber']]};
-function sosSg(f){var L=SOSSG[f]||SOSSG.nose;return '<div class="entry" style="margin-top:10px"><p class="sub" style="margin-bottom:6px">🎵 O pon una de tus canciones:</p>'+L.map(function(x,i){var q=encodeURIComponent(x[1]+' '+x[0]);return '<div style="margin-top:8px"><b>'+esc(x[0])+'</b> <span class="sub">· '+esc(x[1])+(i?'':' · la recomendada')+'</span><div class="row" style="margin-top:6px"><a class="btn yel" href="https://open.spotify.com/search/'+q+'" target="_blank" rel="noopener">Abrir en Spotify</a><a class="btn alt" href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener">YouTube</a></div></div>'}).join('')+'</div>'}
+function sosSg(f){var L=SOSSG[f]||SOSSG.nose,hasF=typeof favSg==='function'&&typeof favItems==='function'&&favItems(f).length>0;if(hasF){var ft=favItems(f).map(function(x){return String(x[0]).toLowerCase()});L=L.filter(function(x){return ft.indexOf(x[0].toLowerCase())<0})}return '<div class="entry" style="margin-top:10px"><p class="sub" style="margin-bottom:6px">🎵 O pon una de tus canciones:</p>'+(hasF?favSg(f):'')+L.map(function(x,i){var q=encodeURIComponent(x[1]+' '+x[0]);return '<div style="margin-top:8px"><b>'+esc(x[0])+'</b> <span class="sub">· '+esc(x[1])+(i||hasF?'':' · la recomendada')+'</span><div class="row" style="margin-top:6px"><a class="btn yel" href="https://open.spotify.com/search/'+q+'" target="_blank" rel="noopener">Abrir en Spotify</a><a class="btn alt" href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener">YouTube</a></div></div>'}).join('')+'</div>'}
 function sosFl(f){var r=SOSF.filter(function(x){return x[0]===f})[0];return r?r[1].toLowerCase():'mal'}
 function sosAct(id){var A={
 resp:{t:'Respirar con calma',d:'Entra cuando el círculo crece y sale cuando se achica. Haz cinco respiraciones.',b:1},
@@ -986,7 +986,7 @@ function vYo(){
    '<details><summary>Mi trabajo</summary><div><p>Escribe tres prioridades por día, anota un logro al final, pregunta sin miedo y haz pausas pequeñas. Llevas pocas semanas, y es normal estar cansada.</p></div></details>'+
    '<details><summary>Nosotros</summary><div><p>Te lastimé con mis actitudes, ya te pedí perdón y me hago responsable. Lo que decidas sobre nosotros es tuyo. No tienes que decidir hoy, y menos cansada o con hambre. Quiero que estés bien, decidas lo que decidas.</p></div></details>'+
    '</section>';
-  h+=privacyCard();h+=galleryCard();h+=backupCard();
+  h+=privacyCard();h+=musicCard();h+=galleryCard();h+=backupCard();
   h+='<p class="note" style="text-align:center">Estas son ideas generales. No reemplazan a un médico, una nutricionista o una psicóloga.</p>';
   return h;
 }
@@ -1103,6 +1103,7 @@ document.addEventListener('submit',function(e){
     if(gfirst){sfx('power');cele(3,' y una cereza')}else{sfx('coin');toast('Guardado')}
     return;
   }
+  if(a==='addfav'&&v){addFav(v,f);return}
   if(a==='addcr'&&v){var cn=Math.max(1,Math.min(60,parseInt(f.c.value,10)||5));S.crew.push({id:uid(),n:cn,t:v});save();render();return}
   if(a==='addmini'&&v){var mid2=uid(),cnt0=S.mini.filter(function(x){return x.d===TODAY}).length;S.mini.push({id:mid2,t:v,d:TODAY});ev('anotó un logro pequeño');if(cnt0<10){S.done[key('mini',DI,mid2)]=1;save();render();cele(1,' por algo pequeño')}else{save();render();toast('Anotado. Hoy ya sumaste 10 logros pequeños')}return}
   if(a==='addc'&&v){var d=f.dataset.d;(S.custom[d]=S.custom[d]||[]).push({id:uid(),t:v});save();render()}
@@ -1128,6 +1129,9 @@ document.addEventListener('change',function(e){
     save();render();if(rv){sfx(gained?'coin':'blip');toast(gained?'Anotado y marcado. +1 moneda':'Anotado. Gracias por contarlo')}
   }
   else if(a==='syncset'){if(!(t.closest&&t.closest('#consent'))){S.sync[t.dataset.f]=t.checked;if(t.dataset.f==='activity'&&!t.checked)S.sync.diary=false;save();render()}}
+  else if(a==='favdel'){S.fav=(S.fav||[]).filter(function(x){return x.id!==b.dataset.id});save();render()}
+  else if(a==='spconnect'){spConnect()}
+  else if(a==='spdisc'){S.sp=null;save();render();toast('Spotify desconectado')}
   else if(a==='kg'){S.kg[t.dataset.k]=t.value.trim();save()}
   else if(a==='time'){if(t.value){S.times[t.dataset.f]=t.value;var th=earn('hours');save();render();if(th)cele(1,' por ajustar tus horas')}}
   else if(t.id==='talk'){UI.draft=t.value}
@@ -1159,7 +1163,7 @@ function buildSummary(){
   return {v:1,now:new Date().toISOString(),coins:coins(),earned:earned(),rank:level().name,level:level().i+1,cups:Object.keys(S.cups).length,cupsTotal:CUPS.length,
     gym:gymTotal(),gymWeek:cnt('gym|'+WK),gymPlanned:S.gym.length,streak:streak,
     today:{date:TODAY,blocksDone:bd,blocksTotal:B.length,missionsDone:md,missionsTotal:ml.length},days:days.reverse(),
-    redeemed:S.redeemed.slice(-10),likes:S.likes,gl:S.gl.slice(-12),photos:mpics().length,voices:mvoice().length,diaryCount:S.talk.length,pilot:S.pilot,gymDays:S.gym,ev:(S.ev||[]).slice(-40),dd:Object.keys(dby).sort().slice(-7).map(function(d){return {d:d,by:dby[d],coins:cb[d]||0}})};
+    redeemed:S.redeemed.slice(-10),likes:S.likes,gl:S.gl.slice(-12),photos:mpics().length,voices:mvoice().length,diaryCount:S.talk.length,pilot:S.pilot,gymDays:S.gym,ev:(S.ev||[]).slice(-40),fav:(S.fav||[]).slice(-30),sp:S.sp?{artists:(S.sp.artists||[]).slice(0,12),tracks:(S.sp.tracks||[]).slice(0,10)}:null,dd:Object.keys(dby).sort().slice(-7).map(function(d){return {d:d,by:dby[d],coins:cb[d]||0}})};
 }
 function buildShared(){
   var m={},ks=Object.keys(S.mood).sort().slice(-14);ks.forEach(function(k){m[k]=S.mood[k]});
@@ -1192,7 +1196,7 @@ function fetchCoach(){
 function privacyRows(){
   var sy=S.sync;
   return '<label class="prv"><input type="checkbox" data-a="syncset" data-f="backup"'+(sy.backup?' checked':'')+'><span><b>Guardar mi progreso en la nube</b><br><span class="sub">Para que no se pierda si cambias de teléfono. Guarda monedas, copas, retos, horario, premios y entrenamientos. No guarda lo que escribes ni tus fotos.</span></span></label>'+
-   '<label class="prv"><input type="checkbox" data-a="syncset" data-f="activity"'+(sy.activity?' checked':'')+'><span><b>Compartir mi actividad con '+esc(COACH.from)+'</b><br><span class="sub">Para que sepa si estás usando la página y cómo vas: lo que marcas, qué secciones abres, cuándo usas Me siento mal, tus monedas, copas y cómo te fue en el gimnasio.</span></span></label>'+
+   '<label class="prv"><input type="checkbox" data-a="syncset" data-f="activity"'+(sy.activity?' checked':'')+'><span><b>Compartir mi actividad con '+esc(COACH.from)+'</b><br><span class="sub">Para que sepa si estás usando la página y cómo vas: lo que marcas, qué secciones abres, cuándo usas Me siento mal, tus canciones favoritas, tus monedas, copas y cómo te fue en el gimnasio.</span></span></label>'+
    '<label class="prv"><input type="checkbox" data-a="syncset" data-f="diary"'+(sy.diary?' checked':'')+(sy.activity?'':' disabled')+'><span><b>Compartir también lo que escribo</b><br><span class="sub">Tu diario, cómo te sientes, lo que realmente hiciste y qué te ayudó en Me siento mal. Mejor déjalo apagado si prefieres que sea solo tuyo. Tus audios y fotos nunca se comparten.</span></span></label>';
 }
 function privacyCard(){
@@ -1207,11 +1211,66 @@ function showConsent(){
   document.getElementById('cno').onclick=function(){S.sync.backup=false;S.sync.activity=false;S.sync.diary=false;S.sync.asked=true;_save();o.remove();toast('No se guarda ni se comparte nada')};
 }
 
+/* ---------- Mi música: canciones favoritas y Spotify (solo lectura de lo más escuchado) ---------- */
+var SP_CLIENT='__SP_CLIENT__';
+function spOn(){return !!(SP_CLIENT&&SP_CLIENT.indexOf('__')<0)}
+function spRedirect(){return location.origin+location.pathname}
+function b64url(buf){var s='',a=new Uint8Array(buf),i;for(i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function spConnect(){
+  var v=rnd32()+rnd32();try{localStorage.setItem('ang-sp-v',v)}catch(e){}
+  crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)).then(function(h){
+    location.href='https://accounts.spotify.com/authorize?response_type=code&client_id='+encodeURIComponent(SP_CLIENT)+'&scope='+encodeURIComponent('user-top-read')+'&redirect_uri='+encodeURIComponent(spRedirect())+'&code_challenge_method=S256&code_challenge='+b64url(h)
+  }).catch(function(){toast('Este navegador no permite conectar Spotify')});
+}
+function spCallback(){
+  var q;try{q=new URLSearchParams(location.search)}catch(e){return}
+  var c=q.get('code');if(!c)return;
+  var v='';try{v=localStorage.getItem('ang-sp-v')||''}catch(e){}
+  try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
+  if(!v||!spOn())return;
+  fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:SP_CLIENT,grant_type:'authorization_code',code:c,redirect_uri:spRedirect(),code_verifier:v})}).then(function(r){return r.json()}).then(function(t){
+    if(!t.access_token)throw 1;var H={Authorization:'Bearer '+t.access_token};
+    return Promise.all([fetch('https://api.spotify.com/v1/me/top/tracks?limit=20&time_range=medium_term',{headers:H}).then(function(r){return r.json()}),fetch('https://api.spotify.com/v1/me/top/artists?limit=12&time_range=medium_term',{headers:H}).then(function(r){return r.json()})])
+  }).then(function(r){
+    S.sp={at:TODAY,tracks:(r[0].items||[]).map(function(x){return {t:x.name,a:(x.artists&&x.artists[0]&&x.artists[0].name)||'',id:x.id}}),artists:(r[1].items||[]).map(function(x){return x.name})};
+    try{localStorage.removeItem('ang-sp-v')}catch(e){}
+    ev('conectó Spotify');save();location.hash='#yo';render();toast('Spotify conectado. Ya veo lo que más escuchas')
+  }).catch(function(){toast('No pude conectar Spotify. Inténtalo de nuevo')});
+}
+function spLink(t,a){return 'https://open.spotify.com/search/'+encodeURIComponent(a+' '+t)}
+function ytLink(t,a){return 'https://www.youtube.com/results?search_query='+encodeURIComponent(a+' '+t)}
+function addFav(v,f){
+  S.fav=S.fav||[];var ar=(f.ar&&f.ar.value||'').trim().slice(0,40),fe=(f.fe&&f.fe.value)||'';
+  if(S.fav.length>=30){toast('Ya tienes 30 canciones. Quita alguna para agregar otra');return}
+  S.fav.push({id:uid(),t:v.slice(0,60),a:ar,f:fe});ev('agregó una canción favorita');save();render();toast('Agregada a tu música')
+}
+function favItems(f){
+  var fv=S.fav||[],a=fv.filter(function(x){return x.f===f}),b=fv.filter(function(x){return !x.f}),L=a.concat(b).slice(0,2).map(function(x){return [x.t,x.a]});
+  if(S.sp&&S.sp.tracks&&S.sp.tracks.length){var tk=S.sp.tracks[(new Date().getDate()+f.length)%S.sp.tracks.length];L.push([tk.t,tk.a])}
+  return L
+}
+function favSg(f){
+  var L=favItems(f);if(!L.length)return '';
+  return L.map(function(x,i){return '<div style="margin-top:8px"><b>'+esc(x[0])+'</b> <span class="sub">'+(x[1]?'· '+esc(x[1])+' ':'')+'· de tu música'+(i?'':' · la recomendada')+'</span><div class="row" style="margin-top:6px"><a class="btn yel" href="'+spLink(x[0],x[1])+'" target="_blank" rel="noopener">Abrir en Spotify</a><a class="btn alt" href="'+ytLink(x[0],x[1])+'" target="_blank" rel="noopener">YouTube</a></div></div>'}).join('')
+}
+function musicCard(){
+  var fv=S.fav||[],sp=S.sp;
+  var h='<section class="card"><h3>Mi música</h3><p class="sub">Dime tus canciones favoritas y las uso cuando te sientas mal, para que siempre tengas algo tuyo a la mano. '+esc(COACH.from)+' también las ve.</p>';
+  h+='<form class="add" data-a="addfav" style="flex-wrap:wrap;gap:8px"><input class="field" name="t" placeholder="Canción" maxlength="60" aria-label="Canción"><input class="field" name="ar" placeholder="Artista" maxlength="40" aria-label="Artista"><select class="field" name="fe" aria-label="Para cuando me siento"><option value="">Para cualquier momento</option>'+SOSF.map(function(x){return '<option value="'+x[0]+'">Cuando me siento: '+x[1].toLowerCase()+'</option>'}).join('')+'</select><button class="btn yel" type="submit">Agregar</button></form>';
+  if(fv.length)h+='<div class="list" style="margin-top:10px">'+fv.map(function(x){return '<div class="itemrow"><div class="tick" style="cursor:default"><span class="tt">'+esc(x.t)+(x.a?' · '+esc(x.a):'')+'</span></div><a class="btn alt" href="'+spLink(x.t,x.a)+'" target="_blank" rel="noopener">Spotify</a><button class="del" data-a="favdel" data-id="'+x.id+'" aria-label="Quitar">×</button></div>'}).join('')+'</div>';
+  if(spOn()){
+    if(sp&&sp.tracks){
+      h+='<h4 style="margin-top:14px">Lo que más escuchas en Spotify</h4><p class="sub">'+esc((sp.artists||[]).slice(0,6).join(', '))+'</p><div class="list">'+sp.tracks.slice(0,6).map(function(x){return '<div class="itemrow"><div class="tick" style="cursor:default"><span class="tt">'+esc(x.t)+' · '+esc(x.a)+'</span></div><a class="btn alt" href="https://open.spotify.com/track/'+esc(x.id)+'" target="_blank" rel="noopener">Abrir</a></div>'}).join('')+'</div><div class="row" style="margin-top:10px"><button class="btn alt" data-a="spconnect">Actualizar desde Spotify</button><button class="btn alt" data-a="spdisc">Desconectar</button></div>'
+    }else h+='<div class="row" style="margin-top:14px"><button class="btn" data-a="spconnect">Conectar mi Spotify</button></div><p class="note">Solo leo tus canciones y artistas más escuchados para conocerte mejor. No puedo reproducir ni cambiar nada en tu cuenta, y puedes desconectarlo cuando quieras.</p>';
+  }
+  return h+'</section>'
+}
+
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(x){}
 syncBtns();
 route();renderTab();
 document.addEventListener('visibilitychange',function(){if(document.hidden&&syncOn()){clearTimeout(pushT);doPush()}});
-ev('abrió la página');save();if(!S.sync.asked)setTimeout(showConsent,600);else schedulePush();
+spCallback();ev('abrió la página');save();if(!S.sync.asked)setTimeout(showConsent,600);else schedulePush();
 fetchCoach();setInterval(fetchCoach,300000);
 mopen(function(){mload(function(){render()})});
 })();
