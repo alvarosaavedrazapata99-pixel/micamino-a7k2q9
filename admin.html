@@ -117,6 +117,7 @@ function load(){
   .catch(function(){$('login').hidden=false;$('main').hidden=true;$('err').textContent='Llave incorrecta o sin conexión.';localStorage.removeItem(KEY)});
 }
 $('go').onclick=function(){localStorage.setItem(KEY,$('key').value.trim());$('err').textContent='';load()};
+(function(){var m=(location.hash||'').match(/^#k=([A-Za-z0-9]+)$/);if(m){try{localStorage.setItem(KEY,m[1])}catch(e){}try{history.replaceState(null,'',location.pathname)}catch(e){}}})();
 if(admin()){load()}
 timer=setInterval(function(){if(admin()&&!$('main').hidden)load()},15000);
 })();
